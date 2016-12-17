@@ -49,6 +49,14 @@ public class GameModel implements Serializable {
     }
 
     public void setupGame(Resources resources) {
+//        Sprite testShip = new Sprite();
+//        testShip.setCenterX(0.5f);
+//        testShip.setCenterY(0);
+//        testShip.setHeight(0.5f);
+//        testShip.setWidth(0.25F);
+//        testShip.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_shield));
+//        _allSprites.add(testShip);
+
         Sprite cwButton = new Sprite();
         cwButton.setCenterX(-0.25f);
         cwButton.setCenterY(-0.8f);
@@ -62,6 +70,7 @@ public class GameModel implements Serializable {
         ccwButton.setHeight(0.5f);
         ccwButton.setWidth(0.25f);
         ccwButton.setTexture(BitmapFactory.decodeResource(resources, R.drawable.rotate_counterclockwise));
+
 
         Sprite fireButton = new Sprite();
         fireButton.setCenterX(0.75f);
@@ -84,8 +93,8 @@ public class GameModel implements Serializable {
 
         _ship.setWidth(0.1f);
         _ship.setHeight(0.2f);
-        //_ship.setVelocityX(7.0f);
-        _ship.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship));
+        //_ship.setVelocity(7.0f);
+        _ship.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_sideways));
         _allSprites.add(_ship);
 
         Sprite asteroid1 = new Sprite();
@@ -95,7 +104,7 @@ public class GameModel implements Serializable {
         asteroid1.setCenterY(-0.5f);
         asteroid1.setVelocityX(-3.0f);
         asteroid1.setVelocityY(-1.0f);
-//        asteroid1.setRotation(1.0f);
+        asteroid1.setRotation(1.0f);
         asteroid1.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
 
         Sprite asteroid2 = new Sprite();
@@ -105,7 +114,7 @@ public class GameModel implements Serializable {
         asteroid2.setCenterY(0.5f);
         asteroid2.setVelocityX(1.0f);
         asteroid2.setVelocityY(5.0f);
-//        asteroid2.setRotation(-1.0f);
+        asteroid2.setRotation(-1.0f);
         asteroid2.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
 
         Sprite asteroid3 = new Sprite();
@@ -115,7 +124,7 @@ public class GameModel implements Serializable {
         asteroid3.setCenterY(-0.5f);
         asteroid3.setVelocityX(1.5f);
         asteroid3.setVelocityY(-3.4f);
-//        asteroid3.setRotation(5.0f);
+        asteroid3.setRotation(5.0f);
         asteroid3.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
 
         _asteroids.add(asteroid1);
@@ -126,40 +135,43 @@ public class GameModel implements Serializable {
     }
 
     public void updateGame() {
-        synchronized (_allSprites) {
-            for (Sprite sprite : _allSprites) {
-                sprite.setCenterX(sprite.getCenterX() + sprite.getVelocityX() * 0.001f);
-                sprite.setCenterY(sprite.getCenterY() + sprite.getVelocityY() * 0.001f);
-                checkWrap(sprite);
-            }
-        }
         /*
+        for (Sprite sprite : _allSprites) {
+            sprite.setCenterX(sprite.getCenterX() + sprite.getVelocity() * 0.001f);
+            sprite.setCenterY(sprite.getCenterY() + sprite.getVelocityY() * 0.001f);
+            checkWrap(sprite);
+        }
+        */
+
         for (Sprite asteroid : _asteroids) {
 //            asteroid.setRotation(asteroid.getRotation() + 1.0f); //this might make velocity harder
-//            asteroid.setCenterX(asteroid.getCenterX() + asteroid.getVelocityX() * 0.001f);
-//            asteroid.setCenterY(asteroid.getCenterY() + asteroid.getVelocityX() * 0.001f);
-            asteroid.setCenterX(asteroid.getCenterX() + asteroid.getVelocityX() * (float)Math.cos(asteroid.getRotation()) * 0.001f);
-            asteroid.setCenterY(asteroid.getCenterY() + asteroid.getVelocityX() * (float)Math.sin(asteroid.getRotation()) * 0.001f);
+//            asteroid.setCenterX(asteroid.getCenterX() + asteroid.getVelocity() * 0.001f);
+//            asteroid.setCenterY(asteroid.getCenterY() + asteroid.getVelocity() * 0.001f);
+            asteroid.setCenterX(asteroid.getCenterX() + asteroid.getVelocityX() * 0.001f);
+            asteroid.setCenterY(asteroid.getCenterY() + asteroid.getVelocityY()* 0.001f);
             checkWrap(asteroid);
         }
         for (Sprite bullet : _bullets) {
-            bullet.setCenterX(bullet.getCenterX() + bullet.getVelocityX() * (float)Math.cos(bullet.getRadians()));
-            bullet.setCenterY(bullet.getCenterY() + bullet.getVelocityX() * (float)Math.sin(bullet.getRadians()));
+            bullet.setCenterX(bullet.getCenterX() + bullet.getVelocityX() * 0.001f);
+            bullet.setCenterY(bullet.getCenterY() + bullet.getVelocityY() * 0.001f);
         }
-//        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocityX() * 0.001f);
-//        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocityX() * 0.001f);
+//        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocity() * 0.001f);
+//        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocity() * 0.001f);
         // TODO: only change the velocity and stuff on ship thrust.... (still change center based on velocity.)
         _ship.setCenterX(_ship.getCenterX() + _ship.getVelocityX() * 0.001f);
-        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocityX() * 0.001f);
+        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocityY() * 0.001f);
         checkWrap(_ship);
-        //TODO: move all the sprites and check for collisions.
-        */
+        //TODO: check for collisions.
+
     }
 
     public void applyThrust() {
-        _ship.setCenterX(_ship.getCenterX() + _ship.getVelocityX() * (float)Math.cos(_ship.getRadians()) * 0.001f);
-        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocityY() * (float)Math.sin(_ship.getRadians()) * 0.001f);
+//        _ship.setCenterX(_ship.getCenterX() + _ship.getVelocityX() * (float)Math.cos(_ship.getRadians()) * 0.001f);
+//        _ship.setCenterY(_ship.getCenterY() + _ship.getVelocityY() * (float)Math.sin(_ship.getRadians()) * 0.001f);
+        _ship.setVelocityX((float)(_ship.getVelocityX() + 1.5 * (float)Math.cos(_ship.getRadians())));
+        _ship.setVelocityY((float)(_ship.getVelocityY() + 1.5 * (float)Math.sin(_ship.getRadians())));
     }
+
     private void checkWrap(Sprite sprite) {
         if (sprite.getCenterX() > 1.0f) {
             sprite.setCenterX(-1.0f);
@@ -178,17 +190,18 @@ public class GameModel implements Serializable {
 
     public void shoot(Resources resources) {
         Sprite bullet = new Sprite();
-        bullet.setWidth(0.01f);
-        bullet.setHeight(0.005f);
-        bullet.setVelocityX(10.0f);
+        bullet.setWidth(0.05f);
+        bullet.setHeight(0.1f);
+        float radians = _ship.getRadians();
+        bullet.setVelocityX((float)((Math.cos(radians) + 1) * 3.0f));
+        bullet.setVelocityY((float)((Math.cos(radians) + 1) * 3.0f));
         bullet.setTexture(BitmapFactory.decodeResource(resources, R.drawable.bullet));
         bullet.setCenterX(_ship.getCenterX());
         bullet.setCenterY(_ship.getCenterY());
         bullet.setRotation(_ship.getRotation());
         _bullets.add(bullet);
         // TODO: Lock this for multi threading
-        synchronized (_allSprites) {
-            _allSprites.add(bullet);
-        }
+
+        _allSprites.add(bullet);
     }
 }

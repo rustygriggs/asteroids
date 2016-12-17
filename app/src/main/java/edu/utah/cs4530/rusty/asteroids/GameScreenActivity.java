@@ -10,7 +10,9 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -34,6 +36,7 @@ public class GameScreenActivity extends Activity implements GLSurfaceView.Render
         _surfaceView = new GLSurfaceView(this);
         _surfaceView.setEGLContextClientVersion(2);
         _surfaceView.setEGLConfigChooser(8, 8, 8, 8, 0, 0);
+//        super.setEGLConfigChooser(8,8,8,8,16,0);
         _surfaceView.setRenderer(this);
         _surfaceView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
 
@@ -61,16 +64,15 @@ public class GameScreenActivity extends Activity implements GLSurfaceView.Render
 
     @Override
     public void onDrawFrame(GL10 gl10) {
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        GLES20.glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         // TODO: Do this in an animator or timer threaded
         _gameModel.updateGame();
+        Set<Sprite> allSprites = new HashSet<>(_gameModel.getAllSprites());
 
-        synchronized (_gameModel.getAllSprites()) {
-            for (Sprite sprite : _gameModel.getAllSprites()) {
+            for (Sprite sprite : allSprites) {
                 sprite.draw();
-            }
         }
     }
 
@@ -83,8 +85,6 @@ public class GameScreenActivity extends Activity implements GLSurfaceView.Render
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             if (touchX > _surfaceView.getWidth() / 2 && touchX < _surfaceView.getWidth() * 0.75f) {
                 Log.i("Boost", "The ship is being boosted");
-                ship.setVelocityX((float)(ship.getVelocityX() + 1.1));
-                ship.setVelocityY((float)(ship.getVelocityY() + 1.1));
                 _gameModel.applyThrust();
             }
             else if (touchX > _surfaceView.getWidth() * 0.75f) {
