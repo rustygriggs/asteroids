@@ -44,6 +44,7 @@ public class Sprite {
     private float _scaleY = 1.0f;
     private float _angle = 0.0f;
     private float _radians = 0.0f;
+    private float _radius = 0.0f;
     private Bitmap _texture = null;
 
     private static boolean _setup = false;
@@ -126,6 +127,10 @@ public class Sprite {
 
     public void setRadians(float radians) {
         _radians = radians;
+    }
+
+    public float getRadius() {
+        return Math.max(_scaleX, _scaleY);
     }
 
 

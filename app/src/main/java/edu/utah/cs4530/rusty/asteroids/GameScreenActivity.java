@@ -68,11 +68,15 @@ public class GameScreenActivity extends Activity implements GLSurfaceView.Render
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         // TODO: Do this in an animator or timer threaded
-        _gameModel.updateGame();
-        Set<Sprite> allSprites = new HashSet<>(_gameModel.getAllSprites());
+        synchronized (_gameModel.getAllSprites()) {
+            _gameModel.updateGame(getResources());
+        }
+        Set<Sprite> allSprites = _gameModel.getAllSprites();
 
+        synchronized (allSprites) {
             for (Sprite sprite : allSprites) {
                 sprite.draw();
+            }
         }
     }
 
@@ -85,7 +89,7 @@ public class GameScreenActivity extends Activity implements GLSurfaceView.Render
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             if (touchX > _surfaceView.getWidth() / 2 && touchX < _surfaceView.getWidth() * 0.75f) {
                 Log.i("Boost", "The ship is being boosted");
-                _gameModel.applyThrust();
+                _gameModel.applyThrust(getResources());
             }
             else if (touchX > _surfaceView.getWidth() * 0.75f) {
                 Log.i("Shoot", "The ship's cannons are being fired");
