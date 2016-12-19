@@ -87,23 +87,40 @@ public class GameScreenActivity extends Activity implements GLSurfaceView.Render
         Sprite ship = _gameModel.getShip();
 
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            if (touchX > _surfaceView.getWidth() / 2 && touchX < _surfaceView.getWidth() * 0.75f) {
-                Log.i("Boost", "The ship is being boosted");
-                _gameModel.applyThrust(getResources());
-                //TODO: set a flag that will be set when pressed down and unset when lifted
-
-            }
-            else if (touchX > _surfaceView.getWidth() * 0.75f) {
-                Log.i("Shoot", "The ship's cannons are being fired");
-                _gameModel.shoot(getResources());
-            }
-            else if (touchX < _surfaceView.getWidth() / 2 && touchX > _surfaceView.getWidth() / 4) {
-                ship.setRotation(ship.getRotation() - 30);
-                Log.i("Rotate CW", "The ship is being rotated clockwise. Angle is: " + ship.getRotation());
+            if (_gameModel.getGameOverFlag()) {
+                _gameModel.setupGame(getResources());
             }
             else {
-                ship.setRotation(ship.getRotation() + 30);
-                Log.i("Rotate CCW", "The ship is being rotated counterclockwise. Angle is: " + ship.getRotation());
+                if (touchX > _surfaceView.getWidth() / 2 && touchX < _surfaceView.getWidth() * 0.75f) {
+                    Log.i("Boost", "The ship is being boosted");
+//                    _gameModel.applyThrust(getResources());
+                    //TODO: set a flag that will be set when pressed down and unset when lifted
+                    _gameModel.setIsBoosting(true);
+
+                } else if (touchX > _surfaceView.getWidth() * 0.75f) {
+                    Log.i("Shoot", "The ship's cannons are being fired");
+                    _gameModel.shoot(getResources());
+                } else if (touchX < _surfaceView.getWidth() / 2 && touchX > _surfaceView.getWidth() / 4) {
+                    Log.i("Rotate CW", "The ship is being rotated clockwise. Angle is: " + ship.getRotation());
+                    _gameModel.setIsRotatingCW(true);
+                } else {
+                    Log.i("Rotate CCW", "The ship is being rotated counterclockwise. Angle is: " + ship.getRotation());
+                    _gameModel.setIsRotatingCCW(true);
+                }
+            }
+        }
+        else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+            if (touchX > _surfaceView.getWidth() / 2 && touchX < _surfaceView.getWidth() * 0.75f) {
+                _gameModel.setIsBoosting(false);
+            }
+            else if (touchX > _surfaceView.getWidth() * 0.75f) {
+                //do nothing
+            }
+            else if (touchX < _surfaceView.getWidth() / 2 && touchX > _surfaceView.getWidth() / 4) {
+                _gameModel.setIsRotatingCW(false);
+            }
+            else {
+                _gameModel.setIsRotatingCCW(false);
             }
         }
         return true;

@@ -16,8 +16,8 @@ public class GameModel implements Serializable {
     private static final float BIG_ASTEROID_DIAMETER = 0.5f;
     private static final float MEDIUM_ASTEROID_DIAMETER = 0.3f;
     private static final float SMALL_ASTEROID_RADIUS = 0.1f;
-    private int asteroidCount = 1;
-    private int lifeCount = 3;
+    private int asteroidCount;
+    private int lifeCount;
 
     private Set<Sprite> _asteroids = new HashSet<>();
     private Set<Sprite> _bullets = new HashSet<>();
@@ -28,6 +28,40 @@ public class GameModel implements Serializable {
     private Sprite _life2;
     private Sprite _life3;
     private Sprite _gameOver = new Sprite();
+    private boolean _gameOverFlag = false;
+    private boolean _isBoosting = false;
+    private boolean _isRotatingCW = false;
+    private boolean _isRotatingCCW = false;
+    private boolean _setShipThrusters = false;
+
+    public void setIsRotatingCW(boolean isRotatingCW) {
+        _isRotatingCW = isRotatingCW;
+    }
+    public boolean getIsRotatingCW(boolean isRotatingCW) {
+        return _isRotatingCW;
+    }
+    public void setIsRotatingCCW(boolean isRotatingCCW) {
+        _isRotatingCCW = isRotatingCCW;
+    }
+    public boolean getIsRotatingCCW(boolean isRotatingCCW) {
+        return _isRotatingCCW;
+    }
+
+    public void setIsBoosting(boolean isBoosting) {
+        _isBoosting = isBoosting;
+    }
+
+    public boolean getIsBoosting() {
+        return _isBoosting;
+    }
+
+    public void setGameOverFlag(boolean flag) {
+        _gameOverFlag = flag;
+    }
+
+    public boolean getGameOverFlag() {
+        return _gameOverFlag;
+    }
 
     public void setAsteroids (Set<Sprite> asteroids) {
         _asteroids = asteroids;
@@ -62,6 +96,15 @@ public class GameModel implements Serializable {
     }
 
     public void setupGame(Resources resources) {
+
+        lifeCount = 3;
+        asteroidCount = 1;
+        _gameOverFlag = false;
+        synchronized (_allSprites) {
+            _allSprites.clear();
+            _asteroids.clear();
+            _bullets.clear();
+        }
 
         Sprite cwButton = new Sprite();
         cwButton.setCenterX(-0.25f);
@@ -158,6 +201,9 @@ public class GameModel implements Serializable {
     }
 
     public void updateGame(Resources resources) {
+        rotateShip();
+        showShipThrusters(resources);
+
         //move ship
         _ship.setCenterX(_ship.getCenterX() + _ship.getVelocityX() * 0.001f);
         _ship.setCenterY(_ship.getCenterY() + _ship.getVelocityY() * 0.001f);
@@ -187,10 +233,31 @@ public class GameModel implements Serializable {
                 checkWrap(asteroid);
             }
         }
-        synchronized (_allSprites) {
-            checkCollisions(resources);
+        if (!_gameOverFlag) {
+            synchronized (_allSprites) {
+                checkCollisions(resources);
+            }
         }
 
+    }
+
+    private void showShipThrusters(Resources resources) {
+        if (_isBoosting) {
+            _ship.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_better_boost));
+            applyThrust(resources);
+        }
+        else {
+            _ship.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_sideways));
+        }
+    }
+
+    private void rotateShip() {
+        if (_isRotatingCW) {
+            _ship.setRotation(_ship.getRotation() - 7);
+        }
+        if (_isRotatingCCW) {
+            _ship.setRotation(_ship.getRotation() + 7);
+        }
     }
 
     private synchronized void checkCollisions(Resources resources) {
@@ -247,6 +314,8 @@ public class GameModel implements Serializable {
                     else if (lifeCount == 1) {
                         _allSprites.remove(_life1);
                         _allSprites.add(_gameOver);
+                        _allSprites.remove(_ship);
+                        _gameOverFlag = true;
                         // TODO: GAME OVER sequence (show game over on screen, options for restart)
                     }
                 }
@@ -286,9 +355,9 @@ public class GameModel implements Serializable {
     }
 
     public void applyThrust(Resources resources) {
-        _ship.setVelocityX((float)(_ship.getVelocityX() + 1.5 * (float)Math.cos(_ship.getRadians())));
-        _ship.setVelocityY((float)(_ship.getVelocityY() + 1.5 * (float)Math.sin(_ship.getRadians())));
-        _ship.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_better_boost));
+        _ship.setVelocityX((float)(_ship.getVelocityX() + 1.1 * (float)Math.cos(_ship.getRadians())));
+        _ship.setVelocityY((float)(_ship.getVelocityY() + 1.1 * (float)Math.sin(_ship.getRadians())));
+//        _ship.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_better_boost));
     }
 
     private void checkWrap(Sprite sprite) {
@@ -308,23 +377,24 @@ public class GameModel implements Serializable {
     }
 
     public void shoot(Resources resources) {
-        Sprite bullet = new Sprite();
-        bullet.setWidth(0.025f);
-        bullet.setHeight(0.05f);
-        float radians = _ship.getRadians();
-        bullet.setVelocityX((float)((Math.cos(radians)) * 30.0f));
-        bullet.setVelocityY((float)((Math.sin(radians)) * 30.0f));
-        bullet.setTexture(BitmapFactory.decodeResource(resources, R.drawable.bullet));
-        bullet.setCenterX(_ship.getCenterX());
-        bullet.setCenterY(_ship.getCenterY());
-        bullet.setRotation(_ship.getRotation());
-        synchronized (_bullets) {
-            _bullets.add(bullet);
-        }
-        // TODO: Lock this for multi threading - may not be necessary
-
-        synchronized (_allSprites) {
-            _allSprites.add(bullet);
+        if (!_gameOverFlag) {
+            Sprite bullet = new Sprite();
+            bullet.setWidth(0.025f);
+            bullet.setHeight(0.05f);
+            float radians = _ship.getRadians();
+            bullet.setVelocityX((float) ((Math.cos(radians)) * 30.0f));
+            bullet.setVelocityY((float) ((Math.sin(radians)) * 30.0f));
+            bullet.setTexture(BitmapFactory.decodeResource(resources, R.drawable.bullet));
+            bullet.setCenterX(_ship.getCenterX());
+            bullet.setCenterY(_ship.getCenterY());
+            bullet.setRotation(_ship.getRotation());
+            synchronized (_bullets) {
+                _bullets.add(bullet);
+            }
+            // TODO: Lock this for multi threading - may not be necessary
+            synchronized (_allSprites) {
+                _allSprites.add(bullet);
+            }
         }
     }
 }
