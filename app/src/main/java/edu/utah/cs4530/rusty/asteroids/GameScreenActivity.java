@@ -90,17 +90,19 @@ public class GameScreenActivity extends Activity implements GLSurfaceView.Render
             if (touchX > _surfaceView.getWidth() / 2 && touchX < _surfaceView.getWidth() * 0.75f) {
                 Log.i("Boost", "The ship is being boosted");
                 _gameModel.applyThrust(getResources());
+                //TODO: set a flag that will be set when pressed down and unset when lifted
+
             }
             else if (touchX > _surfaceView.getWidth() * 0.75f) {
                 Log.i("Shoot", "The ship's cannons are being fired");
                 _gameModel.shoot(getResources());
             }
             else if (touchX < _surfaceView.getWidth() / 2 && touchX > _surfaceView.getWidth() / 4) {
-                ship.setRotation(ship.getRotation() - 10);
+                ship.setRotation(ship.getRotation() - 30);
                 Log.i("Rotate CW", "The ship is being rotated clockwise. Angle is: " + ship.getRotation());
             }
             else {
-                ship.setRotation(ship.getRotation() + 10);
+                ship.setRotation(ship.getRotation() + 30);
                 Log.i("Rotate CCW", "The ship is being rotated counterclockwise. Angle is: " + ship.getRotation());
             }
         }

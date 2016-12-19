@@ -13,15 +13,21 @@ import java.util.Set;
  * Created by Rusty on 12/14/2016.
  */
 public class GameModel implements Serializable {
-    private static final float BIG_ASTEROID_RADIUS = 0.5f;
-    private static final float MEDIUM_ASTEROID_RADIUS = 0.3f;
+    private static final float BIG_ASTEROID_DIAMETER = 0.5f;
+    private static final float MEDIUM_ASTEROID_DIAMETER = 0.3f;
     private static final float SMALL_ASTEROID_RADIUS = 0.1f;
+    private int asteroidCount = 1;
+    private int lifeCount = 3;
 
     private Set<Sprite> _asteroids = new HashSet<>();
     private Set<Sprite> _bullets = new HashSet<>();
     private Sprite _ship = new Sprite();
     private Set<Sprite> _allSprites = new HashSet<>(); //this is for the activity to draw all the sprites.
     private Random random = new Random();
+    private Sprite _life1;
+    private Sprite _life2;
+    private Sprite _life3;
+    private Sprite _gameOver = new Sprite();
 
     public void setAsteroids (Set<Sprite> asteroids) {
         _asteroids = asteroids;
@@ -56,13 +62,6 @@ public class GameModel implements Serializable {
     }
 
     public void setupGame(Resources resources) {
-//        Sprite testShip = new Sprite();
-//        testShip.setCenterX(0.5f);
-//        testShip.setCenterY(0);
-//        testShip.setHeight(0.5f);
-//        testShip.setWidth(0.25F);
-//        testShip.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_shield));
-//        _allSprites.add(testShip);
 
         Sprite cwButton = new Sprite();
         cwButton.setCenterX(-0.25f);
@@ -93,11 +92,41 @@ public class GameModel implements Serializable {
         goButton.setWidth(0.25f);
         goButton.setTexture(BitmapFactory.decodeResource(resources, R.drawable.go_button));
 
+        _life1 = new Sprite();
+        _life1.setCenterX(0.9f);
+        _life1.setCenterY(0.95f);
+        _life1.setHeight(0.16f);
+        _life1.setWidth(0.08f);
+        _life1.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_sideways));
+
+        _life2 = new Sprite();
+        _life2.setCenterX(0.8f);
+        _life2.setCenterY(0.95f);
+        _life2.setHeight(0.16f);
+        _life2.setWidth(0.08f);
+        _life2.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_sideways));
+
+        _life3 = new Sprite();
+        _life3.setCenterX(0.7f);
+        _life3.setCenterY(0.95f);
+        _life3.setHeight(0.16f);
+        _life3.setWidth(0.08f);
+        _life3.setTexture(BitmapFactory.decodeResource(resources, R.drawable.basic_ship_sideways));
+
+        _gameOver.setCenterX(0.0f);
+        _gameOver.setCenterY(0.0f);
+        _gameOver.setWidth(1.0f);
+        _gameOver.setHeight(1.0f);
+        _gameOver.setTexture(BitmapFactory.decodeResource(resources, R.drawable.game_over));
+
         synchronized (_allSprites) {
             _allSprites.add(cwButton);
             _allSprites.add(ccwButton);
             _allSprites.add(fireButton);
             _allSprites.add(goButton);
+            _allSprites.add(_life1);
+            _allSprites.add(_life2);
+            _allSprites.add(_life3);
         }
 
         _ship.setWidth(0.08f);
@@ -108,10 +137,10 @@ public class GameModel implements Serializable {
             _allSprites.add(_ship);
         }
 
-        for (int i = 0; i < 3; i++ ) {
+        for (int i = 0; i < asteroidCount; i++ ) {
             Sprite asteroid = new Sprite();
-            asteroid.setHeight(BIG_ASTEROID_RADIUS);
-            asteroid.setWidth(BIG_ASTEROID_RADIUS / 2);
+            asteroid.setHeight(BIG_ASTEROID_DIAMETER);
+            asteroid.setWidth(BIG_ASTEROID_DIAMETER / 2);
             asteroid.setCenterX(random.nextFloat() * (random.nextBoolean() ? -1 : 1));
             asteroid.setCenterY(random.nextFloat() * (random.nextBoolean() ? -1 : 1));
             asteroid.setVelocityX((float)random.nextInt(10) - 5);
@@ -125,43 +154,7 @@ public class GameModel implements Serializable {
                 _allSprites.add(asteroid);
             }
         }
-        /*
-        Sprite asteroid1 = new Sprite();
-        asteroid1.setHeight(0.5f);
-        asteroid1.setWidth(0.25f);
-        asteroid1.setCenterX(0.5f);
-        asteroid1.setCenterY(-0.5f);
-        asteroid1.setVelocityX(-3.0f);
-        asteroid1.setVelocityY(-1.0f);
-        asteroid1.setRotation(1.0f);
-        asteroid1.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
 
-        Sprite asteroid2 = new Sprite();
-        asteroid2.setHeight(0.5f);
-        asteroid2.setWidth(0.25f);
-        asteroid2.setCenterX(0.5f);
-        asteroid2.setCenterY(0.5f);
-        asteroid2.setVelocityX(1.0f);
-        asteroid2.setVelocityY(5.0f);
-        asteroid2.setRotation(-190.0f);
-        asteroid2.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
-
-        Sprite asteroid3 = new Sprite();
-        asteroid3.setHeight(0.5f);
-        asteroid3.setWidth(0.25f);
-        asteroid3.setCenterX(-0.5f);
-        asteroid3.setCenterY(-0.5f);
-        asteroid3.setVelocityX(1.5f);
-        asteroid3.setVelocityY(-3.4f);
-        asteroid3.setRotation(100.0f);
-        asteroid3.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
-
-        _asteroids.add(asteroid1);
-        _asteroids.add(asteroid2);
-        _asteroids.add(asteroid3);
-
-        _allSprites.addAll(_asteroids);
-        */
     }
 
     public void updateGame(Resources resources) {
@@ -172,9 +165,17 @@ public class GameModel implements Serializable {
 
         //move bullets
         synchronized (_bullets) {
+            Sprite bulletOutofScreen = null;
             for (Sprite bullet : _bullets) {
+                if (bullet.getCenterX() > 1.0f || bullet.getCenterX() < -1.0f
+                        || bullet.getCenterY() > 1.0f || bullet.getCenterY() < -1.0f) {
+                    bulletOutofScreen = bullet;
+                }
                 bullet.setCenterX(bullet.getCenterX() + bullet.getVelocityX() * 0.001f);
                 bullet.setCenterY(bullet.getCenterY() + bullet.getVelocityY() * 0.001f);
+            }
+            if (bulletOutofScreen != null) {
+                _bullets.remove(bulletOutofScreen);
             }
         }
         //move asteroids
@@ -182,78 +183,79 @@ public class GameModel implements Serializable {
             for (Sprite asteroid : _asteroids) {
                 asteroid.setCenterX(asteroid.getCenterX() + asteroid.getVelocityX() * 0.001f);
                 asteroid.setCenterY(asteroid.getCenterY() + asteroid.getVelocityY() * 0.001f);
-                asteroid.setRotation(asteroid.getRotation() + 0.05f);
+                asteroid.setRotation(asteroid.getRotation() + 1);
                 checkWrap(asteroid);
             }
         }
         synchronized (_allSprites) {
             checkCollisions(resources);
         }
-        //TODO: check for collisions.
 
     }
 
     private synchronized void checkCollisions(Resources resources) {
         Set<Sprite> toBeRemoved = new HashSet<>();
         Set<Sprite> toBeAdded = new HashSet<>();
+        Set<Sprite> bulletsToBeRemoved = new HashSet<>();
+        for (Sprite asteroid : _asteroids) {
+            for (Sprite bullet : _bullets) {
 
-        synchronized (_asteroids) {
-            for (Sprite asteroid : _asteroids) {
-
-                synchronized (_bullets) {
-                    for (Sprite bullet : _bullets) {
-                        float combinedRadius = asteroid.getRadius() + bullet.getRadius();
-                        float distance = (float) Math.sqrt((Math.pow((asteroid.getCenterX() - bullet.getCenterX()), 2.0f)) -
-                                (Math.pow((asteroid.getCenterY() - bullet.getCenterY()), 2.0f)));
-
-                        if (distance < combinedRadius) { // collision occurs
-                            if (asteroid.getRadius() == BIG_ASTEROID_RADIUS) {
-                                for (int i = 0; i < 3; i++) {
-                                    Log.i("Medium", "adding 1 medium asteroid");
-                                    Sprite mediumAsteroid = new Sprite();
-                                    mediumAsteroid.setHeight(MEDIUM_ASTEROID_RADIUS);
-                                    mediumAsteroid.setWidth(MEDIUM_ASTEROID_RADIUS / 2);
-                                    mediumAsteroid.setCenterX(asteroid.getCenterX());
-                                    mediumAsteroid.setCenterY(asteroid.getCenterY());
-                                    mediumAsteroid.setVelocityX((float) random.nextInt(10) - 5);
-                                    mediumAsteroid.setVelocityY((float) random.nextInt(10) - 5);
-                                    mediumAsteroid.setRotation((float) random.nextInt(360));
-                                    mediumAsteroid.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
-                                    toBeAdded.add(mediumAsteroid);
-                                }
-                            }
-                        /*
-                        else if (asteroid.getRadius() == MEDIUM_ASTEROID_RADIUS) {
-                            for (int i = 0; i < 3; i++) {
-                                Sprite smallAsteroid = new Sprite();
-                                smallAsteroid.setHeight(SMALL_ASTEROID_RADIUS);
-                                smallAsteroid.setWidth(SMALL_ASTEROID_RADIUS / 2);
-                                smallAsteroid.setCenterX(asteroid.getCenterX());
-                                smallAsteroid.setCenterY(asteroid.getCenterY());
-                                smallAsteroid.setVelocityX((float) random.nextInt(10) - 5);
-                                smallAsteroid.setVelocityY((float) random.nextInt(10) - 5);
-                                smallAsteroid.setRotation((float) random.nextInt(360));
-                                smallAsteroid.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
-                                toBeAdded.add(smallAsteroid);
-                            }
+            // TODO:  fix the collisions problem!
+                float combinedRadius = asteroid.getRadius() + bullet.getRadius();
+                float distance = (float) Math.sqrt((Math.pow((asteroid.getCenterX() - bullet.getCenterX()), 2.0f)) +
+                        (Math.pow((asteroid.getCenterY() - bullet.getCenterY()), 2.0f)));
+                if (distance < combinedRadius) { // collision occurs
+                    if (asteroid.getRadius() == BIG_ASTEROID_DIAMETER / 4) {
+                        for (int i = 0; i < 3; i++) {
+                            Log.i("Medium", "adding 1 medium asteroid");
+                            Sprite mediumAsteroid = new Sprite();
+                            mediumAsteroid.setHeight(MEDIUM_ASTEROID_DIAMETER);
+                            mediumAsteroid.setWidth(MEDIUM_ASTEROID_DIAMETER / 2);
+                            mediumAsteroid.setCenterX(asteroid.getCenterX());
+                            mediumAsteroid.setCenterY(asteroid.getCenterY());
+                            mediumAsteroid.setVelocityX((float) random.nextInt(10) - 5);
+                            mediumAsteroid.setVelocityY((float) random.nextInt(10) - 5);
+                            mediumAsteroid.setRotation((float) random.nextInt(360));
+                            mediumAsteroid.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
+                            toBeAdded.add(mediumAsteroid);
                         }
-                        */
-//                        toBeRemoved.add(asteroid);
-                        }
-
                     }
-                }
-
-
-                float combinedRadiusShip = asteroid.getRadius() + _ship.getRadius();
-                float distanceShip = (float) Math.sqrt((Math.pow((asteroid.getCenterX() - _ship.getCenterX()), 2.0f)) -
-                        (Math.pow((asteroid.getCenterY() - _ship.getCenterY()), 2.0f)));
-                if (distanceShip < combinedRadiusShip) {
-                    // TODO: player loses lives
+                    toBeRemoved.add(asteroid);
+                    bulletsToBeRemoved.add(bullet);
                 }
 
             }
 
+                float combinedRadiusShip = asteroid.getRadius() + _ship.getRadius();
+                float distanceShip = (float) Math.sqrt((Math.pow((asteroid.getCenterX() - _ship.getCenterX()), 2.0f)) +
+                        (Math.pow((asteroid.getCenterY() - _ship.getCenterY()), 2.0f)));
+                if (distanceShip < combinedRadiusShip) {
+                    _ship.setCenterX(0.0f);
+                    _ship.setCenterY(0.0f);
+                    _ship.setVelocityY(0.0f);
+                    _ship.setVelocityX(0.0f);
+                    _ship.setRotation(0.0f);
+                    // TODO: player loses lives
+                    if (lifeCount == 3) {
+                        _allSprites.remove(_life3);
+                        lifeCount--;
+                    }
+                    else if (lifeCount == 2) {
+                        _allSprites.remove(_life2);
+                        lifeCount--;
+                    }
+                    else if (lifeCount == 1) {
+                        _allSprites.remove(_life1);
+                        _allSprites.add(_gameOver);
+                        // TODO: GAME OVER sequence (show game over on screen, options for restart)
+                    }
+                }
+
+            }
+            for (Sprite bullet : bulletsToBeRemoved) {
+                _bullets.remove(bullet);
+                _allSprites.remove(bullet);
+            }
             for (Sprite s : toBeAdded) {
                 _asteroids.add(s);
                 _allSprites.add(s);
@@ -263,7 +265,23 @@ public class GameModel implements Serializable {
                 _allSprites.remove(s);
             }
 
-        }
+            if (_asteroids.size() == 0) {
+                asteroidCount++;
+                for (int i = 0; i < asteroidCount; i++) {
+                    Sprite asteroid = new Sprite();
+                    asteroid.setHeight(BIG_ASTEROID_DIAMETER);
+                    asteroid.setWidth(BIG_ASTEROID_DIAMETER / 2);
+                    asteroid.setCenterX((random.nextBoolean() ? -1 : 1));
+                    asteroid.setCenterY(random.nextFloat() * (random.nextBoolean() ? -1 : 1));
+                    asteroid.setVelocityX((float)random.nextInt(10) - 5);
+                    asteroid.setVelocityY((float)random.nextInt(10) - 5);
+                    asteroid.setRotation((float)random.nextInt(360));
+                    asteroid.setTexture(BitmapFactory.decodeResource(resources, R.drawable.asteroid_sprite));
+                    _allSprites.add(asteroid);
+                    _asteroids.add(asteroid);
+                }
+            }
+
 
     }
 

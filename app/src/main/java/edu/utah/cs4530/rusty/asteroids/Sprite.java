@@ -95,6 +95,9 @@ public class Sprite {
 
     public void setTexture(Bitmap texture) {
         _texture = texture;
+        if (_textureName != 0) {
+            _textureName = -1;
+        }
     }
 
     public float getRotation() {
@@ -130,7 +133,7 @@ public class Sprite {
     }
 
     public float getRadius() {
-        return Math.max(_scaleX, _scaleY);
+        return Math.min(_scaleX, _scaleY) / 2;
     }
 
 
