@@ -30,13 +30,10 @@ public class MainMenuActivity extends Activity {
         welcome.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         welcome.setBackgroundColor(Color.DKGRAY);
         welcome.setTextColor(Color.RED);
+        welcome.setTextSize(48);
 
         Button startGameButton = new Button(this);
         startGameButton.setText("Start Game");
-
-        Button resumeGameButton = new Button(this);
-        resumeGameButton.setText("Resume Game");
-        //TODO: when resumeGameButton is pressed, it will take you to another activity with a list of current games
 
         final Button highScoresButton = new Button(this);
         highScoresButton.setText("High Scores");
@@ -44,8 +41,6 @@ public class MainMenuActivity extends Activity {
         rootLayout.addView(welcome,
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
         rootLayout.addView(startGameButton,
-                new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(resumeGameButton,
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
         rootLayout.addView(highScoresButton,
                 new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));

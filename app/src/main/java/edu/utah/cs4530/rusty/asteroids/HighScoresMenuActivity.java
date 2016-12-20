@@ -9,6 +9,11 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +28,7 @@ public class HighScoresMenuActivity extends Activity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
+
         LinearLayout rootLayout = new LinearLayout(this);
         rootLayout.setOrientation(LinearLayout.VERTICAL);
 
@@ -30,51 +36,57 @@ public class HighScoresMenuActivity extends Activity {
         titleView.setText("High Scores");
         titleView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
 
-        TextView highScore1 = new TextView(this);
-        TextView highScore2 = new TextView(this);
-        TextView highScore3 = new TextView(this);
-        TextView highScore4 = new TextView(this);
-        TextView highScore5 = new TextView(this);
-        TextView highScore6 = new TextView(this);
-        TextView highScore7 = new TextView(this);
-        TextView highScore8 = new TextView(this);
-        TextView highScore9 = new TextView(this);
-        TextView highScore10 = new TextView(this);
+//        HighScores.setInstance(loadFromFile("asteroids_high_score"));
 
-        highScore1.setText("High Score 1");
-        highScore2.setText("High Score 2");
-        highScore3.setText("High Score 3");
-        highScore4.setText("High Score 4");
-        highScore5.setText("High Score 5");
-        highScore6.setText("High Score 6");
-        highScore7.setText("High Score 7");
-        highScore8.setText("High Score 8");
-        highScore9.setText("High Score 9");
-        highScore10.setText("High Score 10");
+        //This doesn't really work. I sure tried but oh well.
+        List<Integer> highScores = HighScores.getInstance().getHighScores();
+        if (highScores.size() > 0) {
+            for (int i = highScores.size() - 1; i > highScores.size() - 11 && i >= 0; i--) {
+                TextView highScoreView = new TextView(this);
+                highScoreView.setText(highScores.get(i));
+                rootLayout.addView(highScoreView, new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+            }
+        }
 
         rootLayout.addView(titleView, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore1, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore2, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore3, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore4, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore5, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore6, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore7, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore8, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore9, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
-        rootLayout.addView(highScore10, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
 
         setContentView(rootLayout);
     }
+
+    /**
+     * This method will save the Gallery to disk using a Serializable fileStream
+     */
+    public void saveToFile() {
+        try {
+            FileOutputStream fos = openFileOutput("asteroids_high_score", MODE_PRIVATE);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(HighScores.getInstance());
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * This method extracts a Gallery from a file saved to disk.
+     * @param paintPaletteFileName is the file name where the Gallery is saved.
+     * @return the Gallery that was previously saved to disk.
+     */
+    private HighScores loadFromFile(String paintPaletteFileName) {
+        HighScores highScores = null;
+        try {
+            FileInputStream fis = openFileInput(paintPaletteFileName);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            highScores = (HighScores) ois.readObject();
+            ois.close();
+        }
+        catch (IOException | ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        return highScores;
+    }
+
 }
